@@ -1,0 +1,14 @@
+.DS_Store
+.snakemake
+logs/
+test_results/
+data/host/*.amb
+data/host/*.ann
+data/host/*.bwt
+data/host/*.pac
+data/host/*.sa
+data/amr/*.amb
+data/amr/*.ann
+data/amr/*.bwt
+data/amr/*.pac
+data/amr/*.sa
