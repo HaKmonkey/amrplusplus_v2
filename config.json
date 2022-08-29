@@ -1,0 +1,60 @@
+{
+    "WORKFLOW":
+    {
+        "READS_SOURCE": "data/raw/",
+        "OUTPUT": "test_results/",
+        "ARCHITECTURE": "arm64",
+        "ENV": "envs/default.yaml"
+    },
+
+    "TRIMMOMATIC":
+    {
+        "THREADS": 10,
+        "ENV": "envs/trimmomatic.yaml",
+        "ADAPTERS": "data/adapters/nextera.fa",
+        "LEADING": "3",
+        "TRAILING": "3",
+        "SLIDING_WINDOW": "4:15",
+        "MINLEN": "36"
+    },
+
+    "BWA":
+    {
+        "HOST_INDEX": "",
+        "AMR_INDEX": "",
+        "HOST": "data/host/chr21.fasta.gz",
+        "AMR": "data/amr/megares_modified_database_v2.00.fasta",
+        "ENV": "envs/bwa.yaml",
+        "THREADS": 10
+    },
+
+    "SAMTOOLS":
+    {
+        "ENV": "envs/samtools.yaml",
+        "THREADS": 10
+    },
+
+    "BEDTOOLS":
+    {
+        "ENV": "envs/bedtools.yaml"
+    },
+
+    "RESISTOME":
+    {
+        "X86_SCRIPT": "bin/resistome",
+        "ARM64_SCRIPT": "bin/resistome_arm64",
+        "ANNOTATION": "data/amr/megares_modified_annotations_v2.00.csv",
+        "THRESHOLD": "80"
+    },
+
+    "RAREFACTION":
+    {
+        "X86_SCRIPT": "bin/rarefaction",
+        "ARM64_SCRIPT": "bin/rarefaction_arm64",
+        "MIN": "5",
+        "MAX": "100",
+        "SKIP": "5",
+        "SAMPLES": "1",
+        "THRESHOLD": "80"
+    }
+}
