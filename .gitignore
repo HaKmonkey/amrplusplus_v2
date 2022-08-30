@@ -12,3 +12,5 @@ data/amr/*.ann
 data/amr/*.bwt
 data/amr/*.pac
 data/amr/*.sa
+minikraken*
+*.done
