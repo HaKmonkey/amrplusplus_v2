@@ -56,5 +56,13 @@
         "SKIP": "5",
         "SAMPLES": "1",
         "THRESHOLD": "80"
+    },
+
+    "KRAKEN":
+    {
+        "INCLUDE": "false",
+        "ENV": "envs/kraken.yaml",
+        "THREADS": 10,
+        "DB": "minikraken_8GB_20200312"
     }
 }

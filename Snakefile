@@ -23,18 +23,31 @@ elif config["WORKFLOW"]["ARCHITECTURE"] == "x86":
     resistome_script = config["RESISTOME"]["X86_SCRIPT"]
     rarefaction_script = config["RAREFACTION"]["X86_SCRIPT"]
 
+# sakdhfgask ###############
+
+all_input = [
+    OUTDIR + "RunQC/trimmomatic.stats",
+    OUTDIR + "RemoveHostDNA/HostRemovalStats/host.removal.stats",
+    OUTDIR + "ResistomeResults/AMR_analytic_matrix.csv",
+    OUTDIR + "SamDedup_ResistomeResults/SamDedup_AMR_analytic_matrix.csv",
+    expand(OUTDIR + "RunRarefaction/{sample}.gene.tsv", sample = SAMPLES),
+    expand(OUTDIR + "RunRarefaction/{sample}.group.tsv", sample = SAMPLES),
+    expand(OUTDIR + "RunRarefaction/{sample}.mechanism.tsv", sample = SAMPLES),
+    expand(OUTDIR + "RunRarefaction/{sample}.class.tsv", sample = SAMPLES)
+]
+
+if config["KRAKEN"]["INCLUDE"] == "true":
+    kraken_results = [
+        OUTDIR + "KrakenResults/kraken_analytic_matrix.csv",
+        OUTDIR + "FilteredKrakenResults/filtered_kraken_analytic_matrix.csv"
+    ]
+    all_input.append(kraken_results)
+
 
 # Will have to update to the correct final output
 rule all:
     input:
-        OUTDIR + "RunQC/trimmomatic.stats",
-        OUTDIR + "RemoveHostDNA/HostRemovalStats/host.removal.stats",
-        OUTDIR + "ResistomeResults/AMR_analytic_matrix.csv",
-        OUTDIR + "SamDedup_ResistomeResults/SamDedup_AMR_analytic_matrix.csv",
-        gene_fp = expand(OUTDIR + "RunRarefaction/{sample}.gene.tsv", sample = SAMPLES),
-        group_fp = expand(OUTDIR + "RunRarefaction/{sample}.group.tsv", sample = SAMPLES),
-        mech_fp = expand(OUTDIR + "RunRarefaction/{sample}.mechanism.tsv", sample = SAMPLES),
-        class_fp = expand(OUTDIR + "RunRarefaction/{sample}.class.tsv", sample = SAMPLES)
+        all_input
 
 
 rule run_qc:
@@ -163,6 +176,10 @@ rule non_host_reads:
         config["BEDTOOLS"]["ENV"]
     shell:
         "bedtools bamtofastq -i {input} -fq {output.fq} -fq2 {output.fq2}"
+
+
+if config["KRAKEN"]["INCLUDE"] == "true":
+    include: "kraken.snakefile"
 
 
 if config["BWA"]["AMR_INDEX"] == "":
