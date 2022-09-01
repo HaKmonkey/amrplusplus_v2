@@ -14,3 +14,8 @@ data/amr/*.pac
 data/amr/*.sa
 minikraken*
 *.done
+*.tsv
+*.txt
+*.fasta
+card.json
+localDB/
