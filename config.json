@@ -7,6 +7,11 @@
         "ENV": "envs/default.yaml"
     },
 
+    "BUILD":
+    {
+        "ENV": "envs/git.yaml"
+    },
+
     "TRIMMOMATIC":
     {
         "THREADS": 10,
@@ -41,16 +46,14 @@
 
     "RESISTOME":
     {
-        "X86_SCRIPT": "bin/resistome",
-        "ARM64_SCRIPT": "bin/resistome_arm64",
+        "SCRIPT": "bin/resistome",
         "ANNOTATION": "data/amr/megares_modified_annotations_v2.00.csv",
         "THRESHOLD": "80"
     },
 
     "RAREFACTION":
     {
-        "X86_SCRIPT": "bin/rarefaction",
-        "ARM64_SCRIPT": "bin/rarefaction_arm64",
+        "SCRIPT": "bin/rarefaction",
         "MIN": "5",
         "MAX": "100",
         "SKIP": "5",
@@ -60,7 +63,7 @@
 
     "KRAKEN":
     {
-        "INCLUDE": "false",
+        "INCLUDE": "true",
         "ENV": "envs/kraken.yaml",
         "THREADS": 10,
         "DB": "minikraken_8GB_20200312"

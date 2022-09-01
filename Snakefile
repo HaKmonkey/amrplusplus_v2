@@ -1,6 +1,30 @@
 configfile: "config.json"
 
+import sys
 from os import listdir
+from os.path import exists
+
+# Input file setup and check ###################################################
+
+OUTDIR = config["WORKFLOW"]["OUTPUT"]
+HOST_FILE = config["BWA"]["HOST"]
+AMR_FILE = config["BWA"]["AMR"]
+ADAPTERS_FILE = config["TRIMMOMATIC"]["ADAPTERS"]
+ANNOTATION_FILE = config["RESISTOME"]["ANNOTATION"]
+
+
+if not exists(HOST_FILE):
+    print(f'HOST failed to open {HOST_FILE} : No such file or directory')
+    sys.exit()
+if not exists(AMR_FILE):
+    print(f'AMR failed to open {AMR_FILE} : No such file or directory')
+    sys.exit()
+if not exists(ADAPTERS_FILE):
+    print(f'ADAPTERS failed to open {ADAPTERS_FILE} : No such file or directory')
+    sys.exit()
+if not exists(ANNOTATION_FILE):
+    print(f'ANNOTATION failed to open {ANNOTATION_FILE} : No such file or directory')
+    sys.exit()
 
 # eq to params.reads ###########################################################
 
@@ -12,20 +36,20 @@ def get_samples(reads_source):
 
 SAMPLES = get_samples(config["WORKFLOW"]["READS_SOURCE"])
 
-OUTDIR = config["WORKFLOW"]["OUTPUT"]
-
 # set scripts to correct architecture ##########################################
 
-if config["WORKFLOW"]["ARCHITECTURE"] == "arm64":
-    resistome_script = config["RESISTOME"]["ARM64_SCRIPT"]
-    rarefaction_script = config["RAREFACTION"]["ARM64_SCRIPT"]
-elif config["WORKFLOW"]["ARCHITECTURE"] == "x86":
-    resistome_script = config["RESISTOME"]["X86_SCRIPT"]
-    rarefaction_script = config["RAREFACTION"]["X86_SCRIPT"]
+# if config["WORKFLOW"]["ARCHITECTURE"] == "arm64":
+#     resistome_script = config["RESISTOME"]["ARM64_SCRIPT"]
+#     rarefaction_script = config["RAREFACTION"]["ARM64_SCRIPT"]
+# elif config["WORKFLOW"]["ARCHITECTURE"] == "x86":
+#     resistome_script = config["RESISTOME"]["X86_SCRIPT"]
+#     rarefaction_script = config["RAREFACTION"]["X86_SCRIPT"]
 
-# sakdhfgask ###############
+# setting up `all` input so pipeline runs without params #######################
 
 all_input = [
+    "build_rarefaction.done",
+    "build_resistome.done",
     OUTDIR + "RunQC/trimmomatic.stats",
     OUTDIR + "RemoveHostDNA/HostRemovalStats/host.removal.stats",
     OUTDIR + "ResistomeResults/AMR_analytic_matrix.csv",
@@ -43,11 +67,30 @@ if config["KRAKEN"]["INCLUDE"] == "true":
     ]
     all_input.append(kraken_results)
 
+################################################################################
 
-# Will have to update to the correct final output
+
 rule all:
     input:
         all_input
+
+
+rule build_resistome:
+    output:
+        touch("build_resistome.done")
+    conda:
+        config["BUILD"]["ENV"]
+    shell:
+        "bin/build_resistome.sh"
+
+
+rule build_rarefaction:
+    output:
+        touch("build_rarefaction.done")
+    conda:
+        config["BUILD"]["ENV"]
+    shell:
+        "bin/build_rarefaction.sh"
 
 
 rule run_qc:
@@ -60,7 +103,7 @@ rule run_qc:
         u1 = OUTDIR + "RunQC/Unpaired/{sample}.1U.fastq.gz",
         u2 = OUTDIR + "RunQC/Unpaired/{sample}.2U.fastq.gz"
     params:
-        illumina_clip = "ILLUMINACLIP:" + config["TRIMMOMATIC"]["ADAPTERS"] + ":2:30:10:3:TRUE",
+        illumina_clip = "ILLUMINACLIP:" + ADAPTERS_FILE + ":2:30:10:3:TRUE",
         leading = "LEADING:" + config["TRIMMOMATIC"]["LEADING"],
         trailing = "TRAILING:" + config["TRIMMOMATIC"]["TRAILING"],
         sliding_window = "SLIDINGWINDOW:" + config["TRIMMOMATIC"]["SLIDING_WINDOW"],
@@ -93,13 +136,13 @@ rule qc_stats:
 if config["BWA"]["HOST_INDEX"] == "":
     rule build_host_index:
         input:
-            config["BWA"]["HOST"]
+            HOST_FILE
         output:
-            config["BWA"]["HOST"] + ".amb",
-            config["BWA"]["HOST"] + ".ann",
-            config["BWA"]["HOST"] + ".bwt",
-            config["BWA"]["HOST"] + ".pac",
-            config["BWA"]["HOST"] + ".sa"
+            HOST_FILE + ".amb",
+            HOST_FILE + ".ann",
+            HOST_FILE + ".bwt",
+            HOST_FILE + ".pac",
+            HOST_FILE + ".sa"
         conda:
             "envs/bwa.yaml"
         shell:
@@ -108,12 +151,12 @@ if config["BWA"]["HOST_INDEX"] == "":
 
 rule align_reads_to_host:
     input:
-        config["BWA"]["HOST"] + ".amb",
-        config["BWA"]["HOST"] + ".ann",
-        config["BWA"]["HOST"] + ".bwt",
-        config["BWA"]["HOST"] + ".pac",
-        config["BWA"]["HOST"] + ".sa",
-        host = config["BWA"]["HOST"],
+        HOST_FILE + ".amb",
+        HOST_FILE + ".ann",
+        HOST_FILE + ".bwt",
+        HOST_FILE + ".pac",
+        HOST_FILE + ".sa",
+        host = HOST_FILE,
         fp_reads = OUTDIR + "RunQC/Paired/{sample}.1P.fastq.gz",
         rp_reads = OUTDIR + "RunQC/Paired/{sample}.2P.fastq.gz"
     output:
@@ -185,13 +228,13 @@ if config["KRAKEN"]["INCLUDE"] == "true":
 if config["BWA"]["AMR_INDEX"] == "":
     rule build_amr_index:
         input:
-            config["BWA"]["AMR"]
+            AMR_FILE
         output:
-            config["BWA"]["AMR"] + ".amb",
-            config["BWA"]["AMR"] + ".ann",
-            config["BWA"]["AMR"] + ".bwt",
-            config["BWA"]["AMR"] + ".pac",
-            config["BWA"]["AMR"] + ".sa"
+            AMR_FILE + ".amb",
+            AMR_FILE + ".ann",
+            AMR_FILE + ".bwt",
+            AMR_FILE + ".pac",
+            AMR_FILE + ".sa"
         conda:
             "envs/bwa.yaml"
         shell:
@@ -200,12 +243,12 @@ if config["BWA"]["AMR_INDEX"] == "":
 
 rule align_to_amr:
     input:
-        config["BWA"]["AMR"] + ".amb",
-        config["BWA"]["AMR"] + ".ann",
-        config["BWA"]["AMR"] + ".bwt",
-        config["BWA"]["AMR"] + ".pac",
-        config["BWA"]["AMR"] + ".sa",
-        amr = config["BWA"]["AMR"],
+        AMR_FILE + ".amb",
+        AMR_FILE + ".ann",
+        AMR_FILE + ".bwt",
+        AMR_FILE + ".pac",
+        AMR_FILE + ".sa",
+        amr = AMR_FILE,
         fnh_reads = OUTDIR + "NonHostReads/{sample}.non.host.R1.fastq.gz",
         rnh_reads = OUTDIR + "NonHostReads/{sample}.non.host.R2.fastq.gz"
     output:
@@ -246,9 +289,10 @@ rule amr_sam_to_bam:
 # `-type_fp` option not working, according to the github that isn't even an option?
 rule run_resistome:
     input:
+        "build_resistome.done",
         sam = OUTDIR + "{sample}.amr.alignment.sam",
-        amr = config["BWA"]["AMR"],
-        annotation = config["RESISTOME"]["ANNOTATION"]
+        amr = AMR_FILE,
+        annotation = ANNOTATION_FILE
     output:
         gene_fp = OUTDIR + "RunResistome/{sample}.gene.tsv",
         group_fp = OUTDIR + "RunResistome/{sample}.group.tsv",
@@ -258,10 +302,9 @@ rule run_resistome:
     conda:
         config["WORKFLOW"]["ENV"]
     params:
-        resistome = resistome_script,
         threshold = config["RESISTOME"]["THRESHOLD"]
     shell:
-        "{params.resistome} "
+        "bin/resistome "
         "-ref_fp {input.amr} "
         "-annot_fp {input.annotation} "
         "-sam_fp {input.sam} "
@@ -286,9 +329,10 @@ rule resistome_results:
 
 rule sam_dedup_run_resistome:
     input:
+        "build_resistome.done",
         sam = OUTDIR + "AlignToAMR/{sample}.amr.alignment.dedup.sam",
-        amr = config["BWA"]["AMR"],
-        annotation = config["RESISTOME"]["ANNOTATION"]
+        amr = AMR_FILE,
+        annotation = ANNOTATION_FILE
     output:
         gene_fp = OUTDIR + "SamDedupRunResistome/{sample}.gene.tsv",
         group_fp = OUTDIR + "SamDedupRunResistome/{sample}.group.tsv",
@@ -297,10 +341,9 @@ rule sam_dedup_run_resistome:
     conda:
         config["WORKFLOW"]["ENV"]
     params:
-        resistome = resistome_script,
         threshold = config["RESISTOME"]["THRESHOLD"]
     shell:
-        "{params.resistome} "
+        "bin/resistome "
         "-ref_fp {input.amr} "
         "-annot_fp {input.annotation} "
         "-sam_fp {input.sam} "
@@ -325,16 +368,16 @@ rule sam_dedup_resistome_results:
 
 rule run_rarefaction:
     input:
+        "build_rarefaction.done",
         sam = OUTDIR + "{sample}.amr.alignment.sam",
-        amr = config["BWA"]["AMR"],
-        annotation = config["RESISTOME"]["ANNOTATION"]
+        amr = AMR_FILE,
+        annotation = ANNOTATION_FILE
     output:
         gene_fp = OUTDIR + "RunRarefaction/{sample}.gene.tsv",
         group_fp = OUTDIR + "RunRarefaction/{sample}.group.tsv",
         mech_fp = OUTDIR + "RunRarefaction/{sample}.mechanism.tsv",
         class_fp = OUTDIR + "RunRarefaction/{sample}.class.tsv"
     params:
-        rarefaction = rarefaction_script,
         rare_min = config["RAREFACTION"]["MIN"],
         rare_max = config["RAREFACTION"]["MAX"],
         rare_skip = config["RAREFACTION"]["SKIP"],
@@ -343,7 +386,7 @@ rule run_rarefaction:
     conda:
         config["WORKFLOW"]["ENV"]
     shell:
-        "{params.rarefaction} "
+        "bin/rarefaction "
         "-ref_fp {input.amr} "
         "-sam_fp {input.sam} "
         "-annot_fp {input.annotation} "
