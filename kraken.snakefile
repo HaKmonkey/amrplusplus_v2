@@ -26,12 +26,12 @@ rule run_kraken:
         config["KRAKEN"]["THREADS"]
     shell:
         "kraken2 {params.kraken_db} "
-        "--paried {input.f_reads} {input.r_reads} "
+        "--paired {input.f_reads} {input.r_reads} "
         "--threads {threads} "
         "--report {output.report} > {output.raw}; "
         "kraken2 {params.kraken_db} "
         "{params.confidence} "
-        "--paried {input.f_reads} {input.r_reads} "
+        "--paired {input.f_reads} {input.r_reads} "
         "--threads {threads} "
         "--report {output.filtered_report} > {output.filtered_raw}"
 
