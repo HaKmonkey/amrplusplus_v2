@@ -28,13 +28,7 @@ if not exists(ANNOTATION_FILE):
 
 # eq to params.reads ###########################################################
 
-def get_samples(reads_source):
-    samples = []
-    for sample in listdir(reads_source):
-        samples.append(sample.split("_")[0])
-    return list(set(samples))
-
-SAMPLES = get_samples(config["WORKFLOW"]["READS_SOURCE"])
+SAMPLES, = glob_wildcards(config["WORKFLOW"]["READS_SOURCE"] + "/{sample}_R1.fastq.gz")
 
 # setting up `all` input so pipeline runs without params #######################
 
@@ -86,8 +80,8 @@ rule build_rarefaction:
 
 rule run_qc:
     input:
-        f_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_test_R1.fastq.gz",
-        r_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_test_R2.fastq.gz"
+        f_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_R1.fastq.gz",
+        r_read = config["WORKFLOW"]["READS_SOURCE"] + "{sample}_R2.fastq.gz"
     output:
         p1 = OUTDIR + "RunQC/Paired/{sample}.1P.fastq.gz",
         p2 = OUTDIR + "RunQC/Paired/{sample}.2P.fastq.gz",
