@@ -36,15 +36,6 @@ def get_samples(reads_source):
 
 SAMPLES = get_samples(config["WORKFLOW"]["READS_SOURCE"])
 
-# set scripts to correct architecture ##########################################
-
-# if config["WORKFLOW"]["ARCHITECTURE"] == "arm64":
-#     resistome_script = config["RESISTOME"]["ARM64_SCRIPT"]
-#     rarefaction_script = config["RAREFACTION"]["ARM64_SCRIPT"]
-# elif config["WORKFLOW"]["ARCHITECTURE"] == "x86":
-#     resistome_script = config["RESISTOME"]["X86_SCRIPT"]
-#     rarefaction_script = config["RAREFACTION"]["X86_SCRIPT"]
-
 # setting up `all` input so pipeline runs without params #######################
 
 all_input = [
@@ -101,7 +92,8 @@ rule run_qc:
         p1 = OUTDIR + "RunQC/Paired/{sample}.1P.fastq.gz",
         p2 = OUTDIR + "RunQC/Paired/{sample}.2P.fastq.gz",
         u1 = OUTDIR + "RunQC/Unpaired/{sample}.1U.fastq.gz",
-        u2 = OUTDIR + "RunQC/Unpaired/{sample}.2U.fastq.gz"
+        u2 = OUTDIR + "RunQC/Unpaired/{sample}.2U.fastq.gz",
+        trim_log = OUTDIR + "RunQC/{sample}.trimmomatic.stats.log"
     params:
         illumina_clip = "ILLUMINACLIP:" + ADAPTERS_FILE + ":2:30:10:3:TRUE",
         leading = "LEADING:" + config["TRIMMOMATIC"]["LEADING"],
@@ -110,8 +102,6 @@ rule run_qc:
         minlen = "MINLEN:" + config["TRIMMOMATIC"]["MINLEN"]
     conda:
         config["TRIMMOMATIC"]["ENV"]
-    log:
-        "logs/run_qc/{sample}.trimmomatic.stats.log"
     threads:
         config["TRIMMOMATIC"]["THREADS"]
     shell:
@@ -119,12 +109,12 @@ rule run_qc:
         "{input.f_read} {input.r_read} "
         "{output.p1} {output.u1} {output.p2} {output.u2} "
         "{params.illumina_clip} {params.leading} {params.trailing} "
-        "{params.sliding_window} {params.minlen} 2> {log}"
+        "{params.sliding_window} {params.minlen} 2> {output.trim_log}"
 
 
 rule qc_stats:
     input:
-        expand("logs/run_qc/{sample}.trimmomatic.stats.log", sample = SAMPLES)
+        expand(OUTDIR + "RunQC/{sample}.trimmomatic.stats.log", sample = SAMPLES)
     output:
         OUTDIR + "RunQC/trimmomatic.stats"
     conda:
