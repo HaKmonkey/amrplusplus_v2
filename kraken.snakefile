@@ -43,8 +43,13 @@ rule kraken_results:
         OUTDIR + "KrakenResults/kraken_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    params:
+        outdir = OUTDIR
     shell:
-        "bin/kraken2_long_to_wide.py -i {input} -o {output}"
+        "bin/kraken2_long_to_wide.py -i {input} -o {output}; "
+        "if [[ -f kraken_unclassifieds.csv ]]; then "
+        "mv kraken_unclassifieds.csv "
+        "{params.outdir}KrakenResults/kraken_unclassifieds.csv; fi"
 
 
 rule filtered_kraken_results:
@@ -54,5 +59,10 @@ rule filtered_kraken_results:
         OUTDIR + "FilteredKrakenResults/filtered_kraken_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    params:
+        outdir = OUTDIR
     shell:
-        "bin/kraken2_long_to_wide.py -i {input} -o {output}"
+        "bin/kraken2_long_to_wide.py -i {input} -o {output}; "
+        "if [[ -f kraken_unclassifieds.csv ]]; then "
+        "mv kraken_unclassifieds.csv "
+        "{params.outdir}FilteredKrakenResults/kraken_unclassifieds.csv; fi"
