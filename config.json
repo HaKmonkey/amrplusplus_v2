@@ -3,7 +3,6 @@
     {
         "READS_SOURCE": "data/raw/",
         "OUTPUT": "test_results/",
-        "ARCHITECTURE": "arm64",
         "ENV": "envs/default.yaml"
     },
 
