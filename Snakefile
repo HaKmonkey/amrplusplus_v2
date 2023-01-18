@@ -8,22 +8,14 @@ from os.path import exists
 
 OUTDIR = config["WORKFLOW"]["OUTPUT"]
 HOST_FILE = config["BWA"]["HOST"]
-AMR_FILE = config["BWA"]["AMR"]
 ADAPTERS_FILE = config["TRIMMOMATIC"]["ADAPTERS"]
-ANNOTATION_FILE = config["RESISTOME"]["ANNOTATION"]
 
 
 if not exists(HOST_FILE):
     print(f'HOST failed to open {HOST_FILE} : No such file or directory')
     sys.exit()
-if not exists(AMR_FILE):
-    print(f'AMR failed to open {AMR_FILE} : No such file or directory')
-    sys.exit()
 if not exists(ADAPTERS_FILE):
     print(f'ADAPTERS failed to open {ADAPTERS_FILE} : No such file or directory')
-    sys.exit()
-if not exists(ANNOTATION_FILE):
-    print(f'ANNOTATION failed to open {ANNOTATION_FILE} : No such file or directory')
     sys.exit()
 
 # eq to params.reads ###########################################################
@@ -52,12 +44,41 @@ if config["KRAKEN"]["INCLUDE"] == "true":
     ]
     all_input.append(kraken_results)
 
+if config["SNP"]["INCLUDE"] == "true":
+    snp_results = [
+        #expand(OUTDIR + "SNP/{sample}_AMR_analytic_matrix_with_SNP_confirmation.csv", sample = SAMPLES),
+        # expand(OUTDIR + "SNP/{sample}.amr.alignment.dedup", sample = SAMPLES),
+        expand(OUTDIR + "SNP/{sample}/Normal_Type_Genes.csv", sample = SAMPLES),
+        expand(OUTDIR + "SNP/{sample}/Frameshift_Type_Genes.csv", sample = SAMPLES),
+        expand(OUTDIR + "SNP/{sample}/Hypersusceptible_Mutations_Type_Genes.csv", sample = SAMPLES),
+        expand(OUTDIR + "SNP/{sample}/Suppressible_Frameshift_Type_Genes.csv", sample = SAMPLES),
+        expand(OUTDIR + "SNP/{sample}/Intrinsic_Resistance_Genes.csv", sample = SAMPLES)
+        #expand(OUTDIR + "SNP/{sample}/detailed_output", sample = SAMPLES)
+    ]
+    all_input.append(snp_results)
+
 ################################################################################
 
 
 rule all:
     input:
         all_input
+
+
+rule get_megares:
+    output:
+        megares_ann = "data/amr/megares_annotations.csv",
+        megares_fasta = "data/amr/megares.fasta"
+    params:
+        ann_link = config["DB"]["MEGARES_ANN"],
+        fasta_link = config["DB"]["MEGARES_FASTA"]
+    conda:
+        config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
+    shell:
+        "wget -O {output.megares_ann} {params.ann_link}; "
+        "wget -O {output.megares_fasta} {params.fasta_link}"
 
 
 rule build_resistome:
@@ -212,13 +233,13 @@ if config["KRAKEN"]["INCLUDE"] == "true":
 if config["BWA"]["AMR_INDEX"] == "":
     rule build_amr_index:
         input:
-            AMR_FILE
+            "data/amr/megares.fasta"
         output:
-            AMR_FILE + ".amb",
-            AMR_FILE + ".ann",
-            AMR_FILE + ".bwt",
-            AMR_FILE + ".pac",
-            AMR_FILE + ".sa"
+            "data/amr/megares.fasta.amb",
+            "data/amr/megares.fasta.ann",
+            "data/amr/megares.fasta.bwt",
+            "data/amr/megares.fasta.pac",
+            "data/amr/megares.fasta.sa"
         conda:
             "envs/bwa.yaml"
         shell:
@@ -227,12 +248,12 @@ if config["BWA"]["AMR_INDEX"] == "":
 
 rule align_to_amr:
     input:
-        AMR_FILE + ".amb",
-        AMR_FILE + ".ann",
-        AMR_FILE + ".bwt",
-        AMR_FILE + ".pac",
-        AMR_FILE + ".sa",
-        amr = AMR_FILE,
+        "data/amr/megares.fasta.amb",
+        "data/amr/megares.fasta.ann",
+        "data/amr/megares.fasta.bwt",
+        "data/amr/megares.fasta.pac",
+        "data/amr/megares.fasta.sa",
+        amr = "data/amr/megares.fasta",
         fnh_reads = OUTDIR + "NonHostReads/{sample}.non.host.R1.fastq.gz",
         rnh_reads = OUTDIR + "NonHostReads/{sample}.non.host.R2.fastq.gz"
     output:
@@ -275,8 +296,8 @@ rule run_resistome:
     input:
         "build_resistome.done",
         sam = OUTDIR + "{sample}.amr.alignment.sam",
-        amr = AMR_FILE,
-        annotation = ANNOTATION_FILE
+        amr = "data/amr/megares.fasta",
+        annotation = "data/amr/megares_annotations.csv"
     output:
         gene_fp = OUTDIR + "RunResistome/{sample}.gene.tsv",
         group_fp = OUTDIR + "RunResistome/{sample}.group.tsv",
@@ -315,8 +336,8 @@ rule sam_dedup_run_resistome:
     input:
         "build_resistome.done",
         sam = OUTDIR + "AlignToAMR/{sample}.amr.alignment.dedup.sam",
-        amr = AMR_FILE,
-        annotation = ANNOTATION_FILE
+        amr = "data/amr/megares.fasta",
+        annotation = "data/amr/megares_annotations.csv"
     output:
         gene_fp = OUTDIR + "SamDedupRunResistome/{sample}.gene.tsv",
         group_fp = OUTDIR + "SamDedupRunResistome/{sample}.group.tsv",
@@ -354,8 +375,8 @@ rule run_rarefaction:
     input:
         "build_rarefaction.done",
         sam = OUTDIR + "{sample}.amr.alignment.sam",
-        amr = AMR_FILE,
-        annotation = ANNOTATION_FILE
+        amr = "data/amr/megares.fasta",
+        annotation = "data/amr/megares_annotations.csv"
     output:
         gene_fp = OUTDIR + "RunRarefaction/{sample}.gene.tsv",
         group_fp = OUTDIR + "RunRarefaction/{sample}.group.tsv",
@@ -384,3 +405,7 @@ rule run_rarefaction:
         "-skip {params.rare_skip} "
         "-samples {params.rare_samples} "
         "-t {params.threshold}"
+
+
+if config["SNP"]["INCLUDE"] == "true":
+    include: "snp.snakefile"
