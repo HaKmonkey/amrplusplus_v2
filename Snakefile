@@ -213,6 +213,8 @@ rule remove_host_dna:
         config["SAMTOOLS"]["ENV"]
     envmodules:
         "samtools/1.9"
+    threads:
+        config["SAMTOOLS"]["THREADS"]
     shell:
         "samtools index {input} && "
         "samtools idxstats {input} > {output.idx}; "
