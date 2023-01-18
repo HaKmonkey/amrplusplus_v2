@@ -86,6 +86,8 @@ rule build_resistome:
         touch("build_resistome.done")
     conda:
         config["BUILD"]["ENV"]
+    envmodules:
+        "git/2.30.1"
     shell:
         "bin/build_resistome.sh"
 
@@ -95,6 +97,8 @@ rule build_rarefaction:
         touch("build_rarefaction.done")
     conda:
         config["BUILD"]["ENV"]
+    envmodules:
+        "git/2.30.1"
     shell:
         "bin/build_rarefaction.sh"
 
@@ -117,6 +121,8 @@ rule run_qc:
         minlen = "MINLEN:" + config["TRIMMOMATIC"]["MINLEN"]
     conda:
         config["TRIMMOMATIC"]["ENV"]
+    envmodules:
+        "trimmomatic/0.39"
     threads:
         config["TRIMMOMATIC"]["THREADS"]
     shell:
@@ -134,6 +140,8 @@ rule qc_stats:
         OUTDIR + "RunQC/trimmomatic.stats"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "bin/trimmomatic_stats.py -i {input} -o {output}"
 
@@ -149,7 +157,9 @@ if config["BWA"]["HOST_INDEX"] == "":
             HOST_FILE + ".pac",
             HOST_FILE + ".sa"
         conda:
-            "envs/bwa.yaml"
+            config["BWA"]["ENV"]
+        envmodules:
+            "bwa/0.7.9a"
         shell:
             "bwa index {input}"
 
@@ -168,6 +178,8 @@ rule align_reads_to_host:
         temp(OUTDIR + "{sample}.host.sam")
     conda:
         config["BWA"]["ENV"]
+    envmodules:
+        "bwa/0.7.9a"
     threads:
         config["BWA"]["THREADS"]
     shell:
@@ -182,6 +194,8 @@ rule host_sam_to_bam:
         OUTDIR + "AlignReadsToHost/{sample}.host.sorted.bam"
     conda:
         config["SAMTOOLS"]["ENV"]
+    envmodules:
+        "samtools/1.9"
     threads:
         config["SAMTOOLS"]["THREADS"]
     shell:
@@ -197,6 +211,8 @@ rule remove_host_dna:
         bam = OUTDIR + "RemoveHostDNA/NonHostBAM/{sample}.host.sorted.removed.bam"
     conda:
         config["SAMTOOLS"]["ENV"]
+    envmodules:
+        "samtools/1.9"
     shell:
         "samtools index {input} && "
         "samtools idxstats {input} > {output.idx}; "
@@ -210,6 +226,8 @@ rule host_removal_stats:
         OUTDIR + "RemoveHostDNA/HostRemovalStats/host.removal.stats"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "bin/samtools_idxstats.py -i {input} -o {output}"
 
@@ -222,6 +240,8 @@ rule non_host_reads:
         fq2 = OUTDIR + "NonHostReads/{sample}.non.host.R2.fastq.gz"
     conda:
         config["BEDTOOLS"]["ENV"]
+    envmodules:
+        "bedtools/2.30.0"
     shell:
         "bedtools bamtofastq -i {input} -fq {output.fq} -fq2 {output.fq2}"
 
@@ -241,7 +261,9 @@ if config["BWA"]["AMR_INDEX"] == "":
             "data/amr/megares.fasta.pac",
             "data/amr/megares.fasta.sa"
         conda:
-            "envs/bwa.yaml"
+            config["BWA"]["ENV"]
+        envmodules:
+            "bwa/0.7.9a"
         shell:
             "bwa index {input}"
 
@@ -260,6 +282,8 @@ rule align_to_amr:
         temp(OUTDIR + "{sample}.amr.alignment.sam")
     conda:
         config["BWA"]["ENV"]
+    envmodules:
+        "bwa/0.7.9a"
     params:
         rg = r"@RG\tID:${sample}\tSM:${sample}"
     threads:
@@ -280,6 +304,8 @@ rule amr_sam_to_bam:
         sam = OUTDIR + "AlignToAMR/{sample}.amr.alignment.dedup.sam"
     conda:
         config["SAMTOOLS"]["ENV"]
+    envmodules:
+        "samtools/1.9"
     threads:
         config["SAMTOOLS"]["THREADS"]
     shell:
@@ -306,6 +332,8 @@ rule run_resistome:
         #type_fp = OUTDIR + "RunResistome/{sample}.type.tsv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     params:
         threshold = config["RESISTOME"]["THRESHOLD"]
     shell:
@@ -328,6 +356,8 @@ rule resistome_results:
         OUTDIR + "ResistomeResults/AMR_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "bin/amr_long_to_wide.py -i {input} -o {output}"
 
@@ -345,6 +375,8 @@ rule sam_dedup_run_resistome:
         class_fp = OUTDIR + "SamDedupRunResistome/{sample}.class.tsv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     params:
         threshold = config["RESISTOME"]["THRESHOLD"]
     shell:
@@ -367,6 +399,8 @@ rule sam_dedup_resistome_results:
         OUTDIR + "SamDedup_ResistomeResults/SamDedup_AMR_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "bin/amr_long_to_wide.py -i {input} -o {output}"
 
@@ -390,6 +424,8 @@ rule run_rarefaction:
         threshold = config["RAREFACTION"]["THRESHOLD"]
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "bin/rarefaction "
         "-ref_fp {input.amr} "
