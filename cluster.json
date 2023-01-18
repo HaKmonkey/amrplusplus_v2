@@ -1,0 +1,55 @@
+{
+    "__default__": {
+        "account": "<account>",
+        "qos": "<account qos>",
+        "cpus-per-task": "1",
+        "Nodes": 1,
+        "mem": "32gb",
+        "runtime": "72:00:00",
+        "jobname": "AMRpp-job",
+        "mail": "<email>",
+        "mail_type": "NONE",
+        "out": "logs/log_%j.log",
+        "err": "logs/err_%j.log"
+    },
+
+    "run_qc": {
+        "cpus-per-task": "8",
+        "mem": "32gb"
+    },
+
+    "build_host_index": {
+        "cpus-per-task": "8",
+        "mem": "64gb"
+    },
+
+    "build_amr_index": {
+        "cpus-per-task": "8",
+        "mem": "64gb"
+    },
+
+    "align_reads_to_host": {
+        "cpus-per-task": "32",
+        "mem": "64gb"
+    },
+
+    "align_to_amr": {
+        "cpus-per-task": "32",
+        "mem": "64gb"
+    },
+
+    "host_sam_to_bam": {
+        "cpus-per-task": "32",
+        "mem": "64gb"
+    },
+
+    "amr_sam_to_bam": {
+        "cpus-per-task": "32",
+        "mem": "64gb"
+    },
+
+    "remove_host_dna": {
+        "cpus-per-task": "10",
+        "mem": "32gb"
+    }
+}
