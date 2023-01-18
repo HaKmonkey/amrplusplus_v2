@@ -19,3 +19,4 @@ bin/rarefaction
 bin/resistome
 temp/*
 bin/AmrPlusPlus_SNP/*
+bin/AmrPlusPlus_SNP
