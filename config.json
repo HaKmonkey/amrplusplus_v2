@@ -3,7 +3,8 @@
     {
         "READS_SOURCE": "data/raw/",
         "OUTPUT": "test_results/",
-        "ENV": "envs/default.yaml"
+        "ENV": "envs/default.yaml",
+        "DEDUP": "false"
     },
 
     "BUILD":
