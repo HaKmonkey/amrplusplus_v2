@@ -51,5 +51,10 @@
     "remove_host_dna": {
         "cpus-per-task": "10",
         "mem": "32gb"
+    },
+
+    "qiime2_dada2": {
+        "cpus-per-task": "10",
+        "mem": "32gb"
     }
 }
