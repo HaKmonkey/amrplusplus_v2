@@ -45,13 +45,11 @@
 
     "RESISTOME":
     {
-        "SCRIPT": "bin/resistome",
         "THRESHOLD": "80"
     },
 
     "RAREFACTION":
     {
-        "SCRIPT": "bin/rarefaction",
         "MIN": "5",
         "MAX": "100",
         "SKIP": "5",
@@ -97,6 +95,17 @@
                 "AMRPLUSPLUS": "false"
             }
         }
+    },
+
+    "QIIME2": {
+        "INCLUDE": "true",
+        "DB": "data/qiime2/gg-13-8-99-515-806-nb-classifier.qza",
+        "ENV": "envs/qiime2-2023.2-linux.yaml",
+        "P_TRIM_LEFT_F": "25",
+        "P_TRIM_LEFT_R": "26",
+        "P_TRUNC_LEN_F": "225",
+        "P_TRUNC_LEN_R": "220",
+        "THREADS": 10
     },
 
     "DB":

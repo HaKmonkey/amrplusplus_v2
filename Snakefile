@@ -51,6 +51,14 @@ if config["SNP"]["INCLUDE"] == "true":
     ]
     all_input.append(snp_results)
 
+if config["QIIME2"]["INCLUDE"] == "true":
+    qiime2_results = [
+        OUTDIR + "Qiime2Results/table-with-taxonomy.biom",
+        OUTDIR + "Qiime2Results/tree.nwk",
+        OUTDIR + "Qiime2Results/dna-sequences.fasta"
+    ]
+    all_input.append(qiime2_results)
+
 ################################################################################
 
 rule all:
@@ -393,3 +401,6 @@ rule run_rarefaction:
 
 if config["SNP"]["INCLUDE"] == "true":
     include: "snp.snakefile"
+
+if config["QIIME2"]["INCLUDE"] == "true":
+    include: "qiime2.snakefile"

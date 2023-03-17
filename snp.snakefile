@@ -76,12 +76,13 @@ rule merge_snp_matricies:
         amr_csv = OUTDIR + "ResistomeResults/AMR_analytic_matrix_updated_header.csv"
     output:
         OUTDIR + "ResistomeResults/AMR_analytic_matrix_with_SNP_confirmation.csv"
+    conda:
+        config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     shell:
         "rm -rf temp/; "
         "bin/merge_snp_out.py "
         "--infiles {input.snp_out} "
         "--amr_csv {input.amr_csv} "
         "--outfile {output}"
-
-
-## WRITE RULE THAT COMBINES THE CHANGES MATRACIES
