@@ -1,17 +1,17 @@
 configfile: "config.json"
 
 rule make_qiime2_manifest:
+    input:
+        config["WORKFLOW"]["READS_SOURCE"]
     output:
         OUTDIR + "Qiime2Results/manifest.tsv"
-    params:
-        indir = config["WORKFLOW"]["READS_SOURCE"]
     conda:
         config["BUILD"]["ENV"]
     envmodules:
         "python/3.8"
     shell:
         "bin/qiime2_manifest.py "
-        "--indir {params.indir} "
+        "--indir {input} "
         "--manifest {output}"
 
 rule qiime2_import:
