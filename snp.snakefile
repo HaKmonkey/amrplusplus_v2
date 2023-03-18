@@ -7,6 +7,8 @@ rule get_snp_verification:
         repo = config["SNP"]["REPO"]
     conda:
         config["BUILD"]["ENV"]
+    envmodules:
+        "git/2.30.1"
     shell:
         "git -C bin/ clone {params.repo};"
 
