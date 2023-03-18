@@ -86,7 +86,8 @@ rule build_resistome:
     conda:
         config["BUILD"]["ENV"]
     envmodules:
-        "git/2.30.1"
+        "git/2.30.1",
+        "gcc/9.3.0"
     shell:
         "bin/build_resistome.sh"
 
@@ -96,7 +97,8 @@ rule build_rarefaction:
     conda:
         config["BUILD"]["ENV"]
     envmodules:
-        "git/2.30.1"
+        "git/2.30.1",
+        "gcc/9.3.0"
     shell:
         "bin/build_rarefaction.sh"
 
