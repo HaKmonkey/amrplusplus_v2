@@ -6,7 +6,6 @@ rule get_minikraken:
     shell:
         "bin/download_minikraken.sh"
 
-
 rule run_kraken:
     input:
         "get_minikraken.done",
@@ -19,6 +18,8 @@ rule run_kraken:
         filtered_raw = OUTDIR + "RunKraken/Filtered/{sample}.kraken.filtered.raw"
     conda:
         config["KRAKEN"]["ENV"]
+    envmodules:
+        "kraken/2.1.2"
     params:
         kraken_db = "--db " + config["KRAKEN"]["DB"],
         confidence = "--confidence 1"
@@ -35,7 +36,6 @@ rule run_kraken:
         "--threads {threads} "
         "--report {output.filtered_report} > {output.filtered_raw}"
 
-
 rule kraken_results:
     input:
         expand(OUTDIR + "RunKraken/Standard_report/{sample}.kraken.report", sample = SAMPLES)
@@ -43,6 +43,8 @@ rule kraken_results:
         OUTDIR + "KrakenResults/kraken_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     params:
         outdir = OUTDIR
     shell:
@@ -51,7 +53,6 @@ rule kraken_results:
         "mv kraken_unclassifieds.csv "
         "{params.outdir}KrakenResults/kraken_unclassifieds.csv; fi"
 
-
 rule filtered_kraken_results:
     input:
         expand(OUTDIR + "RunKraken/Filtered_report/{sample}.kraken.filtered.report", sample = SAMPLES)
@@ -59,6 +60,8 @@ rule filtered_kraken_results:
         OUTDIR + "FilteredKrakenResults/filtered_kraken_analytic_matrix.csv"
     conda:
         config["WORKFLOW"]["ENV"]
+    envmodules:
+        "python/3.8"
     params:
         outdir = OUTDIR
     shell:
