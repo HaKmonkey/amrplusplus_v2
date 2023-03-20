@@ -3,6 +3,12 @@ Overview
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥5.6.0-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 
+## Notes
+
+Qiime2 has been added for feature parity with the NextFlow version of the
+pipeline, however I have been unable to successfully test it, so I would
+recommend against using it in this version for now. Testing will continue.
+
 ## Requirements
 
 Dependancies are managed through [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
